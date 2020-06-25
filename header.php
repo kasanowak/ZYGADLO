@@ -34,8 +34,8 @@
       <?php wp_nav_menu(array('theme_location' => 'header-menu')); ?>
   </div>
   <div class="nav__contact">
-    <a href="">kontakt@andrzejzygadlo.pl</a>
+    <a href="mailto:kontakt@andrzejzygadlo.pl" target="_blank">kontakt@andrzejzygadlo.pl</a>
     <a class="phone-link" href="tel:+48669691778">+48 669 691 778</a>
-    <a href="">Facebook</a>
+    <a href="https://www.facebook.com/Co-pi%C4%85tek-%C5%BBygad%C5%82o-112762573688432/" target="_blank">Facebook</a>
   </div>
 </nav>
