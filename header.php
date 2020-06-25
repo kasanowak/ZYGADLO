@@ -11,15 +11,16 @@
   <meta name="application-name" content="andrzejzygadlo.pl">
   <meta name="msapplication-TileColor" content="#2d89ef">
   <meta name="theme-color" content="#00a5e7">
-
-  <!--    <meta property="og:image:width" content="1366">-->
-  <!--    <meta property="og:image:height" content="715">-->
-  <!--    <meta property="og:title" content="Auto-myjnia Ręczna Krak&oacute;w - ul. Piastowska 59">-->
-  <!--    <meta property="og:description" content="Najlepsza ręczna myjnia samochodowa w Krakowie. ">-->
-  <!--    <meta property="og:url" content="http://myjniakrakow24.pl/">-->
-  <!--    <meta property="og:image" content="http://myjniakrakow24.pl/og-image.jpg">-->
+  <meta property="og:image:width" content="1366">
+  <meta property="og:image:height" content="715">
+  <meta property="og:title" content="ŻYGADŁO - website">
+  <meta property="og:description"
+        content="Andrzej Żygadło - Urodzony w 1988 w Przeworsku. Absolwent Liceum Plastycznego w Jarosławiu. W latach 2008-18 studiował na wydziałach Malarstwa oraz Konserwacji i Restauracji Dzieł Sztuki w krakowskiej ASP.">
+  <meta property="og:url" content="http://andrzejzygadlo.pl/">
+  <meta property="og:image" content="http://andrzejzygadlo.pl/og-image.jpg">
 
     <?php wp_head(); ?>
+
   <link rel="stylesheet" href="<?php bloginfo('template_directory'); ?>/style.css?v1.2">
 
 </head>
