@@ -20,7 +20,7 @@
   <meta property="og:image" content="http://andrzejzygadlo.pl/og-image.jpg">
 
     <?php wp_head(); ?>
-
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <link rel="stylesheet" href="<?php bloginfo('template_directory'); ?>/style.css?v1.2">
 
 </head>
