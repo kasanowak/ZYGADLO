@@ -64,35 +64,86 @@ const news = (await getFeed()).slice(0, 5);
 <script>
   const track = document.querySelector<HTMLElement>('[data-track]');
   const bar = document.querySelector<HTMLElement>('[data-progress]');
-  if (track) {
+  const originals = track ? Array.from(track.querySelectorAll<HTMLElement>('[data-slide]')) : [];
+  const n = originals.length;
+
+  if (track && n > 1) {
+    // Pętla: kopie slajdów przed i za oryginałami. Po zatrzymaniu na kopii
+    // slider niezauważalnie przeskakuje na ten sam slajd w środkowym zestawie.
+    const makeClone = (s: HTMLElement) => {
+      const c = s.cloneNode(true) as HTMLElement;
+      c.setAttribute('aria-hidden', 'true');
+      c.querySelectorAll('a').forEach((a) => a.setAttribute('tabindex', '-1'));
+      c.querySelectorAll('img').forEach((img) => {
+        img.loading = 'lazy';
+        img.removeAttribute('fetchpriority');
+      });
+      return c;
+    };
+    track.prepend(...originals.map(makeClone));
+    track.append(...originals.map(makeClone));
     const slides = Array.from(track.querySelectorAll<HTMLElement>('[data-slide]'));
-    let current = 0;
-    const indexFromScroll = () => {
+    const pos = (i: number) => slides[i].offsetLeft - slides[0].offsetLeft;
+
+    let current = n;
+    const nearest = () => {
       const left = track.scrollLeft;
       let best = 0;
-      slides.forEach((s, i) => {
-        if (Math.abs(s.offsetLeft - left) < Math.abs(slides[best].offsetLeft - left)) best = i;
+      slides.forEach((_, i) => {
+        if (Math.abs(pos(i) - left) < Math.abs(pos(best) - left)) best = i;
       });
       return best;
     };
-    const update = () => {
-      current = indexFromScroll();
-      if (bar) bar.style.height = `${((current + 1) / slides.length) * 100}%`;
+    const paint = () => {
+      const real = current % n;
+      if (bar) bar.style.height = `${((real + 1) / n) * 100}%`;
       slides.forEach((s, i) => s.classList.toggle('is-active', i === current));
     };
-    const go = (i: number) => {
-      const target = slides[(i + slides.length) % slides.length];
-      track.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+    const jumpTo = (i: number) => {
+      track.style.scrollSnapType = 'none';
+      track.scrollLeft = pos(i);
+      track.offsetHeight; // wymuś przeliczenie przed przywróceniem przyciągania
+      track.style.scrollSnapType = '';
+      current = i;
+      paint();
     };
-    track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+    // po zakończeniu przewijania: z kopii na oryginał
+    const settle = () => {
+      current = nearest();
+      if (current < n) jumpTo(current + n);
+      else if (current >= 2 * n) jumpTo(current - n);
+      else paint();
+    };
+    /** Przewiń o `delta` slajdów; najpierw wróć z kopii do środkowego zestawu. */
+    const goBy = (delta: number) => {
+      if (current < n || current >= 2 * n) settle();
+      const target = Math.max(0, Math.min(slides.length - 1, current + delta));
+      track.scrollTo({ left: pos(target), behavior: 'smooth' });
+    };
+
+    let settleTimer = 0;
+    track.addEventListener(
+      'scroll',
+      () => {
+        requestAnimationFrame(() => {
+          current = nearest();
+          paint();
+        });
+        clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(settle, 140); // zamiast `scrollend` (brak w starszym Safari)
+      },
+      { passive: true },
+    );
+    window.addEventListener('resize', () => jumpTo(current % n + n));
+
     track.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); }
-      if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); goBy(1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); goBy(-1); }
     });
     // kliknięcie w kolejny (częściowo widoczny) obraz przewija slider
     slides.forEach((s, i) =>
       s.querySelector('a')?.addEventListener('click', (e) => {
-        if (i !== current) { e.preventDefault(); go(i); }
+        if (i !== current) { e.preventDefault(); goBy(i - current); }
       }),
     );
     // automatyczne przewijanie co 6 s (wstrzymane po najechaniu / focusie)
@@ -102,10 +153,13 @@ const news = (await getFeed()).slice(0, 5);
     track.addEventListener('pointerleave', () => (paused = false));
     track.addEventListener('focusin', () => (paused = true));
     track.addEventListener('focusout', () => (paused = false));
-    if (!reduce && slides.length > 1) {
-      setInterval(() => { if (!paused && !document.hidden) go(current + 1); }, 6000);
+    if (!reduce) {
+      setInterval(() => { if (!paused && !document.hidden) goBy(1); }, 6000);
     }
-    update();
+    jumpTo(n);
+  } else if (bar) {
+    bar.style.height = '100%';
+    originals[0]?.classList.add('is-active');
   }
 </script>
 
@@ -116,6 +170,11 @@ const news = (await getFeed()).slice(0, 5);
     background: var(--grey);
     overflow: hidden;
   }
+  .hero {
+    /* kontrast na jasnoszarym tle: nazwisko ≥ 3:1 (duży tekst), opis ≥ 7:1 */
+    --hero-name: #808080;
+    --hero-text: var(--ink);
+  }
   .hero__name {
     position: absolute;
     z-index: 3;
@@ -123,7 +182,7 @@ const news = (await getFeed()).slice(0, 5);
     right: var(--g);
     margin: 0;
     text-align: right;
-    color: var(--white);
+    color: var(--hero-name);
     pointer-events: none;
   }
   .hero__tagline {
@@ -134,7 +193,7 @@ const news = (await getFeed()).slice(0, 5);
     font-size: var(--fs-lead);
     line-height: 1.65;
     letter-spacing: 0.05em;
-    color: var(--white);
+    color: var(--hero-text);
   }
   .hero__tagline span {
     display: block;
@@ -145,7 +204,7 @@ const news = (await getFeed()).slice(0, 5);
     left: 9.84vw;
     width: 1px;
     height: clamp(55px, 5.83vw, 112px);
-    background: var(--white);
+    background: var(--muted);
   }
   .hero__progress span {
     display: block;
