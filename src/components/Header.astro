@@ -1,0 +1,121 @@
+---
+import ArrowButton from './ArrowButton.astro';
+interface Props {
+  back?: { href: string; label: string };
+  hideLogo?: boolean;
+}
+const { back, hideLogo = false } = Astro.props;
+---
+<header class:list={['site-header', { 'site-header--nologo': hideLogo }]} data-header>
+  <a href="/" class="site-header__logo" aria-label="Andrzej Żygadło – strona główna">
+    ANDRZEJ<br />ŻYGADŁO
+  </a>
+  <button
+    type="button"
+    class="burger"
+    data-menu-open
+    aria-controls="site-menu"
+    aria-expanded="false"
+    aria-label="Otwórz menu"
+  >
+    <span></span><span></span>
+  </button>
+  {
+    back && (
+      <ArrowButton href={back.href} back class="site-header__back">
+        {back.label}
+      </ArrowButton>
+    )
+  }
+</header>
+
+<style>
+  .site-header {
+    position: fixed;
+    z-index: 40;
+    top: var(--header-top);
+    left: var(--g);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    pointer-events: none;
+  }
+  .site-header > * {
+    pointer-events: auto;
+  }
+  .site-header__logo {
+    font-weight: 700;
+    font-size: var(--fs-logo);
+    line-height: 1.25;
+    letter-spacing: 0;
+    color: var(--line);
+    transition:
+      opacity 0.3s ease,
+      color 0.3s ease;
+  }
+  .site-header__logo:hover {
+    color: var(--muted);
+  }
+  .site-header--nologo .site-header__logo {
+    opacity: 0;
+    visibility: hidden;
+  }
+  .js .site-header--nologo.is-scrolled .site-header__logo {
+    opacity: 1;
+    visibility: visible;
+  }
+  .burger {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    margin: calc(0.5em + 4px) 0 0 -12px;
+  }
+  .burger span {
+    position: absolute;
+    left: 12px;
+    width: 20px;
+    height: 1px;
+    background: var(--ink);
+    transition: transform 0.25s ease;
+  }
+  .burger span:first-child {
+    top: 17px;
+  }
+  .burger span:last-child {
+    top: 26px;
+  }
+  .burger:hover span:first-child {
+    transform: translateX(4px);
+  }
+  .site-header :global(.site-header__back) {
+    margin-top: 10px;
+    margin-left: -0.6em;
+  }
+
+  /* mobile: tylko „hamburger”, pasek przyklejony do góry */
+  @media (max-width: 899px) {
+    .site-header {
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      padding: 0 var(--g);
+      flex-direction: row;
+      align-items: center;
+      transition: background 0.3s ease;
+    }
+    .site-header.is-scrolled {
+      background: rgba(255, 255, 255, 0.96);
+    }
+    .site-header__logo {
+      display: none;
+    }
+    .burger,
+    .site-header--nologo .burger {
+      margin: 0 0 0 -12px;
+    }
+    .site-header :global(.site-header__back) {
+      display: none;
+    }
+  }
+</style>

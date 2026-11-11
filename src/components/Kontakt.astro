@@ -1,0 +1,174 @@
+---
+import { site } from '../data/site';
+import Arrow from './Arrow.astro';
+interface Props {
+  /** Na stronie /kontakt nagłówek to <h1>, w stopce – <h2>. */
+  asPage?: boolean;
+}
+const { asPage = false } = Astro.props;
+const Heading = asPage ? 'h1' : 'h2';
+---
+<section class:list={['kontakt', { 'kontakt--page': asPage }]} id="kontakt" aria-labelledby="kontakt-title">
+  {
+    !asPage && (
+      <a href="#top" class="kontakt__top">
+        <Arrow dir="up" />
+        <span>Go to top</span>
+      </a>
+    )
+  }
+  <Heading class="kontakt__title display" id="kontakt-title">Kontakt</Heading>
+  <div class="kontakt__grid">
+    <div class="kontakt__left">
+      <p class="kontakt__intro">Zapraszam do kontaktu.</p>
+      <a class="kontakt__fb" href={site.facebook} target="_blank" rel="noopener">Facebook</a>
+    </div>
+    <address class="kontakt__right">
+      <a href={`mailto:${site.email}`} class="kontakt__mail">{site.email}</a>
+      <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>
+    </address>
+  </div>
+  <footer class="kontakt__footer">
+    <p>© {site.name} {new Date().getFullYear()}</p>
+    <p>Design by <a href={site.designBy.url}>{site.designBy.name}</a></p>
+  </footer>
+</section>
+
+<style>
+  .kontakt {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--grey);
+    padding: clamp(14px, 3.9vw, 75px) var(--g) clamp(16px, 2vw, 40px);
+    min-height: clamp(480px, 61.3vw, 1177px);
+  }
+  .kontakt--page {
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-top: var(--header-top);
+  }
+  .kontakt__top {
+    position: absolute;
+    top: clamp(14px, 3.9vw, 75px);
+    left: var(--g);
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-style: italic;
+    font-size: var(--fs-btn);
+    letter-spacing: 0.06em;
+    color: var(--white);
+    transition: color 0.25s ease;
+  }
+  .kontakt__top:hover {
+    color: var(--ink);
+  }
+  .kontakt__title {
+    margin: 0;
+    text-align: right;
+    color: var(--white);
+  }
+  .kontakt--page .kontakt__title {
+    margin-top: -0.08em;
+  }
+  .kontakt__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    padding: clamp(32px, 6vw, 115px) 0 0 calc(var(--list-l) - var(--g));
+  }
+  .kontakt__right {
+    display: flex;
+    flex-direction: column;
+    font-style: normal;
+    font-size: var(--fs-contact);
+    line-height: 1.64;
+    letter-spacing: 0.05em;
+  }
+  .kontakt__mail {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  .kontakt__right a:hover,
+  .kontakt__fb:hover {
+    opacity: 0.6;
+  }
+  .kontakt__intro {
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: var(--fs-body);
+    line-height: 1.79;
+    letter-spacing: 0.05em;
+  }
+  .kontakt__fb {
+    display: inline-block;
+    margin-top: clamp(16px, 1.5vw, 28px);
+    font-size: var(--fs-body);
+    letter-spacing: 0.05em;
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .kontakt__footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    margin-top: auto;
+    padding-top: 48px;
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: var(--fs-small);
+    letter-spacing: 0.05em;
+  }
+  .kontakt__footer a {
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  @media (min-width: 900px) {
+    .kontakt__grid {
+      grid-template-columns: calc(48.95vw - var(--list-l)) 1fr;
+    }
+    .kontakt__right {
+      margin-top: -0.55em;
+    }
+  }
+
+  @media (max-width: 899px) {
+    .kontakt {
+      min-height: 0;
+      padding-top: 22px;
+    }
+    .kontakt--page {
+      padding-top: 22px;
+    }
+    .kontakt__top {
+      display: none;
+    }
+    .kontakt__grid {
+      grid-template-columns: 1fr;
+      padding-top: 36px;
+    }
+    .kontakt__left {
+      display: contents;
+    }
+    .kontakt__intro {
+      order: 0;
+    }
+    .kontakt__right {
+      order: 1;
+      padding: 16px 0 0;
+      margin: 0;
+    }
+    .kontakt__fb {
+      order: 2;
+      margin-top: 24px;
+      justify-self: start;
+    }
+    .kontakt__footer {
+      padding-top: 64px;
+    }
+  }
+</style>

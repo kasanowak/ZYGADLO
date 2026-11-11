@@ -1,0 +1,34 @@
+---
+/** Przycisk „↓” – pokaż kolejne pozycje listy. */
+import Arrow from './Arrow.astro';
+---
+<div class="more">
+  <button type="button" class="more__btn" data-more aria-label="Pokaż więcej">
+    <Arrow dir="down" />
+  </button>
+</div>
+<style>
+  .more {
+    display: flex;
+    justify-content: center;
+    padding: clamp(32px, 4vw, 80px) 0 0;
+  }
+  .more__btn {
+    display: grid;
+    place-items: center;
+    width: 39px;
+    height: 60px;
+    background: var(--grey);
+    color: var(--ink);
+    transition: background 0.25s ease;
+  }
+  .more__btn:hover {
+    background: var(--line);
+  }
+  .more__btn:hover :global(.arrow) {
+    transform: rotate(90deg) translateX(4px) !important;
+  }
+  .more__btn[hidden] {
+    display: none;
+  }
+</style>

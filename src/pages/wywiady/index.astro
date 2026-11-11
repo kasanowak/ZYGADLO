@@ -1,0 +1,28 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import NewsList from '../../components/NewsList.astro';
+import MoreButton from '../../components/MoreButton.astro';
+import { getPosts, sections } from '../../lib/content';
+
+const PAGE = 10;
+const items = (await getPosts('wywiady')).map((p) => ({
+  title: p.data.title,
+  href: `/wywiady/${p.id}`,
+  date: p.data.data,
+  badge: p.data.zrodlo ?? sections.wywiady.badge,
+  filter: 'wywiad',
+  thumb: p.data.okladka ?? p.data.galeria[0]?.src,
+}));
+---
+<Base title="Wywiady" description="Wywiady z Andrzejem Żygadłą.">
+  <PageHead title="Wywiady" />
+  <section class="list-wrap" data-listing data-page-size={PAGE}>
+    <NewsList items={items} initial={PAGE} />
+    {items.length === 0 && <p class="empty-state">Wkrótce pojawią się tu wywiady.</p>}
+    {items.length > PAGE && <MoreButton />}
+  </section>
+</Base>
+<script>
+  import '../../scripts/listing';
+</script>

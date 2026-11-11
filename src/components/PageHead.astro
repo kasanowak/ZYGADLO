@@ -1,0 +1,64 @@
+---
+/** Duży tytuł strony (np. „GALERIA”) z opcjonalną listą filtrów pod spodem. */
+interface Props {
+  title: string;
+  filters?: { key: string; label: string }[];
+  /** Klucz zaznaczony domyślnie (bez parametru w adresie). */
+  current?: string;
+  /** Nazwa parametru w adresie, np. ?kategoria=malarstwo */
+  param?: string;
+}
+const { title, filters, current = 'wszystkie', param = 'kategoria' } = Astro.props;
+---
+<div class="page-head">
+  <h1 class="display page-head__title">{title}</h1>
+  {
+    filters && (
+      <nav class="filters" aria-label="Filtruj" data-filters data-param={param}>
+        <ul>
+          {[{ key: 'wszystkie', label: 'wszystkie' }, ...filters].map((f) => (
+            <li>
+              <a
+                href={f.key === 'wszystkie' ? '?' : `?${param}=${f.key}`}
+                data-filter={f.key}
+                class:list={{ 'is-active': f.key === current }}
+                aria-current={f.key === current ? 'true' : undefined}
+              >
+                {f.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    )
+  }
+  <slot />
+</div>
+
+<style>
+  .page-head__title {
+    overflow-wrap: anywhere;
+  }
+  .filters {
+    margin-top: clamp(4px, 0.9vw, 18px);
+  }
+  .filters a {
+    display: inline-block;
+    font-size: var(--fs-lead);
+    line-height: 1.79;
+    letter-spacing: 0.05em;
+    color: rgba(192, 192, 192, 0.74);
+    transition: color 0.25s ease;
+  }
+  .filters a:hover {
+    color: var(--ink);
+  }
+  .filters a.is-active {
+    color: var(--ink);
+  }
+  @media (max-width: 899px) {
+    .filters a {
+      line-height: 2.1;
+    }
+  }
+</style>

@@ -1,0 +1,231 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import { getPaintings, paintingCaption } from '../../lib/content';
+import { galleryCategories } from '../../data/site';
+
+const paintings = await getPaintings();
+const years = [...new Set(paintings.map((p) => p.data.rok))].sort((a, b) => b - a);
+const groups = years.map((year) => ({ year, items: paintings.filter((p) => p.data.rok === year) }));
+---
+<Base title="Galeria" description="Galeria prac Andrzeja Żygadły: malarstwo, grafika, ilustracja.">
+  <PageHead title="Galeria" filters={[...galleryCategories]}>
+    <nav class="years" aria-label="Lata">
+      <ul>
+        {
+          years.map((y, i) => (
+            <li>
+              <a href={`#rok-${y}`} data-group-link={String(y)} class:list={{ 'is-active': i === 0 }}>
+                {y}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+  </PageHead>
+
+  <div class="gallery" data-listing>
+    {
+      groups.map((g) => (
+        <section class="year-group" id={`rok-${g.year}`} data-group={String(g.year)} aria-label={`Prace z roku ${g.year}`}>
+          <div class="year-group__label" aria-hidden="true">
+            <span>{g.year}</span>
+          </div>
+          <div class="year-group__grid">
+            {g.items.map((p) => {
+              const portrait = p.data.obraz.width < p.data.obraz.height;
+              const cap = paintingCaption(p.data);
+              return (
+                <figure class:list={['work reveal', { 'work--portrait': portrait }]} data-item data-cat={p.data.kategoria}>
+                  <a href={`/galeria/${p.id}`} class="work__link">
+                    <Image
+                      src={p.data.obraz}
+                      alt={p.data.alt ?? p.data.title}
+                      widths={[360, 560, 800, 1100, 1400]}
+                      sizes={portrait ? '(min-width: 900px) 24vw, 75vw' : '(min-width: 900px) 34vw, 100vw'}
+                      loading="lazy"
+                    />
+                    <figcaption class="work__caption caption">
+                      <span>{cap.title}</span>
+                      <span>{cap.details.join(' | ')}</span>
+                    </figcaption>
+                  </a>
+                </figure>
+              );
+            })}
+          </div>
+        </section>
+      ))
+    }
+    <p class="empty-state gallery__empty" data-empty hidden>Brak prac w tej kategorii.</p>
+  </div>
+</Base>
+
+<script>
+  import '../../scripts/listing';
+
+  // podświetlenie bieżącego roku w nawigacji
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('[data-group-link]'));
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue;
+        const year = (e.target as HTMLElement).dataset.group;
+        links.forEach((a) => a.classList.toggle('is-active', a.dataset.groupLink === year));
+      }
+    },
+    { rootMargin: '-40% 0px -55% 0px' },
+  );
+  document.querySelectorAll('[data-group]').forEach((g) => io.observe(g));
+</script>
+
+<style>
+  .years {
+    margin-top: clamp(16px, 2vw, 38px);
+  }
+  .years ul {
+    display: flex;
+    justify-content: flex-end;
+    gap: clamp(20px, 2.2vw, 43px);
+  }
+  .years li[hidden] {
+    display: none;
+  }
+  .years a {
+    font-size: var(--fs-lead);
+    line-height: 1.65;
+    letter-spacing: 0.05em;
+    color: rgba(192, 192, 192, 0.74);
+    transition: color 0.25s ease;
+  }
+  .years a:hover,
+  .years a.is-active {
+    color: var(--ink);
+  }
+
+  .gallery {
+    padding: clamp(24px, 6vw, 115px) var(--g) clamp(64px, 6vw, 120px) var(--list-l);
+  }
+  .year-group {
+    display: flex;
+    flex-direction: row-reverse;
+    gap: clamp(24px, 4vw, 77px);
+  }
+  .year-group[hidden] {
+    display: none;
+  }
+  .year-group + .year-group {
+    margin-top: clamp(80px, 10.4vw, 200px);
+  }
+  .year-group__label {
+    flex: 0 0 auto;
+    width: clamp(70px, 8.75vw, 168px);
+    text-align: right;
+  }
+  .year-group__label span {
+    position: sticky;
+    top: var(--header-top);
+    display: block;
+    font-size: var(--fs-lead);
+    line-height: 1.65;
+    letter-spacing: 0.05em;
+  }
+  .year-group__grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(32px, 4vw, 77px);
+    row-gap: clamp(80px, 10.4vw, 200px);
+    align-items: center;
+  }
+  .work {
+    margin: 0;
+  }
+  .work[hidden] {
+    display: none;
+  }
+  .work__link {
+    display: block;
+  }
+  .work :global(img) {
+    width: 100%;
+    margin-inline: auto;
+  }
+  .work--portrait :global(img) {
+    width: 70%;
+  }
+  .work__caption {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 12px;
+    text-align: center;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .work__link:hover .work__caption,
+  .work__link:focus-visible .work__caption {
+    opacity: 1;
+  }
+  @media (min-width: 900px) {
+    .work__caption {
+      display: block;
+    }
+    .work__caption span + span::before {
+      content: ', ';
+    }
+  }
+
+  @media (max-width: 899px) {
+    .years {
+      margin: 16px calc(var(--g) * -1) 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .years::-webkit-scrollbar {
+      display: none;
+    }
+    .years ul {
+      justify-content: flex-start;
+      padding: 0 var(--g);
+    }
+    .gallery {
+      padding-top: 40px;
+    }
+    .year-group {
+      display: block;
+    }
+    .year-group + .year-group {
+      margin-top: 48px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .year-group__label {
+      position: sticky;
+      top: 0;
+      z-index: 41;
+      width: auto;
+      height: 0;
+      pointer-events: none;
+    }
+    .year-group__label span {
+      position: static;
+      padding-top: 16px;
+      color: var(--ink);
+    }
+    .year-group + .year-group .year-group__label span {
+      color: var(--muted);
+    }
+    .year-group__grid {
+      grid-template-columns: 1fr;
+      row-gap: 48px;
+      padding-top: 56px;
+    }
+    .work__caption {
+      opacity: 1;
+    }
+  }
+</style>

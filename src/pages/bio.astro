@@ -1,0 +1,96 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import Lista from '../components/Lista.astro';
+import portret from '../assets/zdjecia/andrzej-zygadlo.jpg';
+---
+<Base title="Bio" description="Andrzej Żygadło – urodzony w 1988 w Przeworsku, absolwent krakowskiej ASP. Malarz, konserwator, badacz drewnianej architektury cerkiewnej.">
+  <PageHead title="Bio" />
+  <article class="article bio">
+    <p class="lead bio__lead">
+      Urodzony w 1988 w Przeworsku. Absolwent Liceum Plastycznego w Jarosławiu. W latach 2008-18 studiował na
+      wydziałach Malarstwa oraz Konserwacji i Restauracji Dzieł Sztuki w krakowskiej ASP.
+    </p>
+
+    <figure class="bio__photo">
+      <Image src={portret} alt="Andrzej Żygadło" widths={[400, 700, 960]} sizes="(min-width: 900px) min(900px, 47vw), calc(100vw - 52px)" loading="eager" />
+    </figure>
+
+    <div class="prose bio__text">
+      <p>
+        Dyplom z malarstwa realizowany w pracowni prof. Leszka Misiaka obronił w 2014. Dyplom z konserwacji malarstwa
+        pod opieką promotora dr. hab. Marty Lempart-Geratowskiej obronił w 2018. Pola twórczości: malarstwo, rysunek,
+        grafika, fotografia.
+      </p>
+      <p>
+        Zajmuje się również: dokumentacją i konserwacją zabytków, historią sztuki (ze szczególnym uwzględnieniem
+        drewnianej architektury cerkiewnej) oraz ikonografią zabytków architektury Polski południowo-wschodniej.
+        Autor licznych artykułów o charakterze naukowym i popularnonaukowym. Stypendysta Ministra Kultury i Dziedzictwa
+        Narodowego w roku akademickim 2011/12, oraz Ministra Nauki i Szkolnictwa Wyższego w roku akademickim 2013/14.
+        Od 2016 wraz z Damianem Nowakiem, Ireneuszem Marciszukiem i Katarzyną Tur-Marciszuk tworzy „Cyfrowe Archiwum
+        Jerzego Tura i Barbary Tondos”.
+      </p>
+      <p>
+        Brał udział w licznych wystawach zbiorowych i indywidualnych. Jego prace znajdują się m.in. w zbiorach: Muzeum
+        Narodowego w Gdańsku, Biblioteki Kórnickiej PAN w Kórniku, Muzeum Karykatury im. Eryka Lipińskiego
+        w Warszawie, a także w prywatnych kolekcjach w kraju i za granicą.
+      </p>
+      <p>
+        W latach 2013-2016 był członkiem zarządu stowarzyszenia Magurycz, w latach 2014-2018 był wiceprezesem
+        Stowarzyszenia Razem dla Białobok. W latach 2009-2014 prowadził kompleksowe monograficzne badania nad
+        twórczością Kajetana Wawrzyńca Kielisińskiego.
+      </p>
+      <p>Od 2013 roku rokrocznie organizuje obozy inwentaryzacyjno-badawcze na terenie województwa podkarpackiego.</p>
+    </div>
+
+    <Lista tytul="Wybrane wystawy indywidualne" widoczne={8}>
+      <ul>
+        <li>IX-XII 2008 – wystawa <em>„polsko-ruska Madonna”</em> (realizowana wspólnie z Ewą Szozdą); Galeria kolegiacka, Jarosław</li>
+        <li>IX-X 2012 – wystawa <em>„Bez widoku”</em>, Galeria Klubu Dziennikarzy, Kraków</li>
+        <li>I-II 2014 – wystawa <em>„Chram”</em>, Art Agenda Nova, Kraków</li>
+        <li>IX-X 2014 – wystawa <em>„D.O.M.”</em>, Art. Agenda Nova, Kraków</li>
+        <li>VI 2015 – wystawa <em>„D.O.M.”</em>, Galeria Klubu Adwokatów, Kraków</li>
+        <li>XII 2016-I 2017 – wystawa <em>„Zapis”</em>, Desa Unicum, Warszawa</li>
+        <li>III-V 2017 – wystawa <em>„Archiwum w sztuce, sztuka w archiwum”</em>, Archiwum Państwowe w Przemyślu</li>
+      </ul>
+    </Lista>
+
+    <Lista tytul="Wybrane publikacje" widoczne={4}>
+      <ul>
+        <li>A. Żygadło, <em>…mnie Pan Bóg umyślnie stworzył do zbierania takich rzeczy</em>, „Skarby Podkarpackie”, nr 6 (31)/2011.</li>
+        <li>A. Żygadło, <em>Jan Mycielski w świetle dokumentów ze zbiorów Związku Polskich Artystów Plastyków w Krakowie i Towarzystwa Przyjaciół Sztuk Pięknych w Krakowie</em>, „Barbizon Wiśniowski”, nr 6/2012.</li>
+        <li>A. Żygadło, <em>Projekcja atrybutów cmentarza</em>, [w:] Cmentarz miejsce (nie) obcych, pod red. O. Solarz, Nowica 2013.</li>
+        <li>A. Żygadło, <em>Współczesna ochrona zabytkowej architektury drewnianej w województwie podkarpackim – zagrożenia i remedium</em>, [w:] Drewno w architekturze, t. 2, pod red. J. Kurka, Kraków 2016.</li>
+      </ul>
+    </Lista>
+  </article>
+</Base>
+
+<style>
+  .bio {
+    padding-top: clamp(16px, 3vw, 60px);
+    padding-bottom: clamp(64px, 6.9vw, 133px);
+  }
+  .bio__lead {
+    margin-top: calc(var(--fs-display) * -0.15);
+  }
+  .bio__photo {
+    margin: clamp(28px, 4.2vw, 80px) 0 clamp(28px, 4.1vw, 78px);
+    max-width: min(900px, 100%) !important;
+  }
+  .bio__photo :global(img) {
+    width: 100%;
+  }
+  .bio__text {
+    color: var(--ink);
+  }
+  .bio :global(.lista:first-of-type) {
+    margin-top: clamp(32px, 2.6vw, 50px);
+  }
+  @media (max-width: 899px) {
+    .bio__lead {
+      margin-top: 24px;
+    }
+  }
+</style>

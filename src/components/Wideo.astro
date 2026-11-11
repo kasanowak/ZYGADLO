@@ -1,0 +1,75 @@
+---
+/**
+ * Film w treści wpisu. Użycie w MDX:
+ *   <Wideo youtube="dQw4w9WgXcQ" tytul="Relacja z obozu" />
+ * Odtwarzacz YouTube ładuje się dopiero po kliknięciu.
+ */
+interface Props {
+  youtube?: string;
+  tytul?: string;
+}
+const { youtube, tytul = 'Film' } = Astro.props;
+const id = youtube?.trim();
+---
+{
+  id && (
+    <figure class="wideo">
+      <button type="button" class="wideo__poster" data-yt={id} aria-label={`Odtwórz: ${tytul}`}>
+        <img src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`} alt="" loading="lazy" width="480" height="360" />
+        <span class="wideo__play" aria-hidden="true">
+          <svg width="22" height="26" viewBox="0 0 22 26"><path d="M0 0l22 13L0 26z" fill="currentColor" /></svg>
+        </span>
+      </button>
+    </figure>
+  )
+}
+<script>
+  document.querySelectorAll<HTMLButtonElement>('[data-yt]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const iframe = document.createElement('iframe');
+      iframe.src = `https://www.youtube-nocookie.com/embed/${btn.dataset.yt}?autoplay=1`;
+      iframe.title = btn.getAttribute('aria-label')?.replace('Odtwórz: ', '') || 'Film';
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      iframe.allowFullscreen = true;
+      btn.replaceWith(iframe);
+    }),
+  );
+</script>
+<style>
+  .wideo {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    margin: clamp(32px, 4vw, 80px) 0;
+    background: var(--dark);
+  }
+  .wideo :global(iframe),
+  .wideo__poster {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+  .wideo__poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .wideo__play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    display: grid;
+    place-items: center;
+    width: 72px;
+    height: 72px;
+    padding-left: 5px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--ink);
+    transition: transform 0.25s ease;
+  }
+  .wideo__poster:hover .wideo__play {
+    transform: scale(1.08);
+  }
+</style>

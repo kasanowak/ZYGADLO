@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import ArrowButton from '../components/ArrowButton.astro';
+---
+<Base title="Nie znaleziono strony">
+  <div class="page-head">
+    <h1 class="display">404</h1>
+  </div>
+  <div class="article nf">
+    <p class="lead">Nie znaleziono strony. Mogła zostać przeniesiona albo usunięta.</p>
+    <p class="nf__back"><ArrowButton href="/">Strona główna</ArrowButton></p>
+  </div>
+</Base>
+<style>
+  .nf {
+    padding-top: clamp(24px, 3vw, 60px);
+    padding-bottom: clamp(64px, 8vw, 160px);
+  }
+  .nf__back {
+    margin-top: 32px;
+  }
+</style>

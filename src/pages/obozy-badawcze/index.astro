@@ -1,0 +1,25 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import RowList from '../../components/RowList.astro';
+import MoreButton from '../../components/MoreButton.astro';
+import { getPosts } from '../../lib/content';
+
+const PAGE = 11;
+const entries = await getPosts('obozy');
+---
+<Base title="Obozy badawcze" description="Obozy inwentaryzacyjno-badawcze na terenie województwa podkarpackiego.">
+  <PageHead title="Obozy badawcze" />
+  <div class="article intro">
+    <p class="lead">
+      Od 2013 roku rokrocznie organizuję obozy inwentaryzacyjno-badawcze na terenie województwa podkarpackiego.
+    </p>
+  </div>
+  <section class="list-wrap" data-listing data-page-size={PAGE}>
+    <RowList entries={entries} base="/obozy-badawcze" initial={PAGE} />
+    {entries.length > PAGE && <MoreButton />}
+  </section>
+</Base>
+<script>
+  import '../../scripts/listing';
+</script>

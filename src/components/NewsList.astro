@@ -1,0 +1,124 @@
+---
+import { Image } from 'astro:assets';
+import { formatDate, type FeedItem } from '../lib/content';
+
+interface Props {
+  items: FeedItem[];
+  /** Ile pozycji pokazać na start (0 = wszystkie). Pozostałe ukryte do „↓”. */
+  initial?: number;
+  headingLevel?: 'h2' | 'h3';
+}
+const { items, initial = 0, headingLevel = 'h2' } = Astro.props;
+const H = headingLevel;
+---
+<ul class="news">
+  {
+    items.map((item, i) => (
+      <li class="news__item" data-item data-cat={item.filter} hidden={initial > 0 && i >= initial}>
+        <a href={item.href} class="news__link">
+          <H class="news__title">{item.title}</H>
+          <span class="news__meta">
+            <time class="news__date" datetime={item.date.toISOString().slice(0, 10)}>
+              {formatDate(item.date)}
+            </time>
+            <span class="news__badge caption">{item.badge}</span>
+          </span>
+          {item.thumb && (
+            <span class="news__thumb" aria-hidden="true">
+              <Image src={item.thumb} alt="" width={200} height={200} fit="cover" loading="lazy" densities={[1, 2]} />
+            </span>
+          )}
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .news__item {
+    border-bottom: 1px solid var(--line);
+  }
+  .news__link {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 32px;
+    align-items: start;
+    padding: clamp(18px, 3.3vw, 63px) 0 clamp(18px, 3.3vw, 63px);
+    min-height: clamp(0px, 13.5vw, 260px);
+  }
+  .news__title {
+    max-width: 1245px;
+    font-weight: 400;
+    font-size: var(--fs-lead);
+    line-height: 1.65;
+    letter-spacing: 0.05em;
+    transition: color 0.3s ease;
+  }
+  .news__meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+    padding-top: 0.3em;
+  }
+  .news__date {
+    font-style: italic;
+    font-size: var(--fs-label);
+    line-height: 1.8;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .news__badge {
+    font-size: 12px;
+    line-height: 1.6;
+    text-transform: uppercase;
+  }
+  .news__thumb {
+    position: absolute;
+    top: clamp(14px, 0.9vw, 18px);
+    left: clamp(500px, 40.5vw, 776px);
+    width: clamp(120px, 10.4vw, 200px);
+    opacity: 0;
+    transform: translateY(8px);
+    transition:
+      opacity 0.35s ease,
+      transform 0.35s ease;
+    pointer-events: none;
+  }
+  .news__link:hover .news__title,
+  .news__link:focus-visible .news__title {
+    color: var(--muted);
+  }
+  .news__link:hover .news__thumb,
+  .news__link:focus-visible .news__thumb {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (max-width: 899px) {
+    .news__link {
+      grid-template-columns: 1fr;
+      gap: 6px;
+      padding: 12px 0 20px;
+      min-height: 0;
+    }
+    .news__title {
+      order: 2;
+      padding-right: 0;
+    }
+    .news__meta {
+      order: 1;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: baseline;
+      padding-top: 0;
+    }
+    .news__badge {
+      font-size: 14px;
+    }
+    .news__thumb {
+      display: none;
+    }
+  }
+</style>

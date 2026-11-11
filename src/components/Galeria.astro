@@ -1,0 +1,193 @@
+---
+/**
+ * Galeria wpisu: pierwsze zdjęcie + „Zobacz galerię” + licznik.
+ * Zdjęcia pochodzą z pola `galeria` we frontmatterze wpisu
+ * (przekazywane przez Astro.locals albo props).
+ */
+import { Image, getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  zdjecia?: { src: ImageMetadata; alt: string }[];
+}
+const zdjecia = Astro.props.zdjecia ?? Astro.locals.galeria ?? [];
+const id = `gal-${Math.random().toString(36).slice(2, 8)}`;
+const full = await Promise.all(
+  zdjecia.map(async (z) => {
+    const img = await getImage({ src: z.src, width: Math.min(z.src.width, 1800), format: 'webp' });
+    return { src: img.src, alt: z.alt, w: img.attributes.width ?? z.src.width, h: img.attributes.height ?? z.src.height };
+  }),
+);
+---
+{
+  zdjecia.length > 0 && (
+    <figure class="galeria" data-galeria={id}>
+      <button type="button" class="galeria__cover" data-galeria-open="0" aria-label="Otwórz galerię zdjęć">
+        <Image
+          src={zdjecia[0].src}
+          alt={zdjecia[0].alt}
+          widths={[400, 800, 1200, 1600]}
+          sizes="(min-width: 900px) min(800px, 42vw), calc(100vw - 52px)"
+          loading="lazy"
+        />
+      </button>
+      <figcaption class="galeria__bar">
+        <button type="button" class="galeria__btn" data-galeria-open="0">
+          Zobacz galerię
+        </button>
+        <span class="caption">zdjęcie 1/{zdjecia.length}</span>
+      </figcaption>
+
+      <dialog class="lightbox" aria-label="Galeria zdjęć">
+        <div class="lightbox__stage">
+          {full.map((z, i) => (
+            <img data-src={z.src} alt={z.alt} width={z.w} height={z.h} decoding="async" data-slide={i} hidden={i !== 0} />
+          ))}
+        </div>
+        <button type="button" class="lightbox__close" data-close aria-label="Zamknij galerię">
+          <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true"><path d="M1 1l13 13M14 1L1 14" stroke="currentColor" stroke-width="1.2" /></svg>
+        </button>
+        {zdjecia.length > 1 && (
+          <div class="lightbox__nav">
+            <button type="button" data-prev aria-label="Poprzednie zdjęcie">←</button>
+            <span class="caption" data-counter aria-live="polite">zdjęcie 1/{zdjecia.length}</span>
+            <button type="button" data-next aria-label="Następne zdjęcie">→</button>
+          </div>
+        )}
+      </dialog>
+    </figure>
+  )
+}
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-galeria]').forEach((root) => {
+    const dialog = root.querySelector('dialog');
+    if (!dialog) return;
+    const slides = Array.from(dialog.querySelectorAll<HTMLImageElement>('[data-slide]'));
+    const counter = dialog.querySelector('[data-counter]');
+    let index = 0;
+    const show = (i: number) => {
+      index = (i + slides.length) % slides.length;
+      slides.forEach((s, k) => (s.hidden = k !== index));
+      // wczytaj bieżące i sąsiednie zdjęcie dopiero przy otwarciu
+      [index, index + 1, index - 1].forEach((k) => {
+        const img = slides[(k + slides.length) % slides.length];
+        if (img && !img.getAttribute('src') && img.dataset.src) img.src = img.dataset.src;
+      });
+      if (counter) counter.textContent = `zdjęcie ${index + 1}/${slides.length}`;
+    };
+    root.querySelectorAll<HTMLElement>('[data-galeria-open]').forEach((b) =>
+      b.addEventListener('click', () => {
+        show(Number(b.dataset.galeriaOpen || 0));
+        dialog.showModal();
+      }),
+    );
+    dialog.querySelector('[data-close]')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-prev]')?.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('[data-next]')?.addEventListener('click', () => show(index + 1));
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') show(index - 1);
+      if (e.key === 'ArrowRight') show(index + 1);
+    });
+    let startX = 0;
+    dialog.addEventListener('touchstart', (e) => (startX = e.touches[0].clientX), { passive: true });
+    dialog.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - startX;
+      if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1));
+    });
+  });
+</script>
+
+<style>
+  .galeria {
+    margin: clamp(24px, 1.5vw, 30px) 0 clamp(28px, 2.6vw, 50px);
+    max-width: min(800px, 100%) !important;
+  }
+  .galeria__cover {
+    display: block;
+    width: 100%;
+    cursor: zoom-in;
+  }
+  .galeria__cover :global(img) {
+    width: 100%;
+  }
+  .galeria__bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+  }
+  .galeria__btn {
+    position: relative;
+    padding: 4px 22px;
+    background: var(--grey);
+    font-style: italic;
+    font-size: var(--fs-btn);
+    letter-spacing: 0.06em;
+    transition: background 0.25s ease;
+  }
+  .galeria__btn:hover {
+    background: var(--line);
+  }
+  .lightbox {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--dark);
+    color: var(--white);
+  }
+  .lightbox[open] {
+    display: grid;
+    grid-template-rows: 1fr auto;
+  }
+  .lightbox::backdrop {
+    background: rgba(28, 28, 28, 0.6);
+  }
+  .lightbox__stage {
+    display: grid;
+    place-items: center;
+    padding: 64px var(--g) 16px;
+    min-height: 0;
+  }
+  .lightbox__stage img {
+    max-width: 100%;
+    max-height: calc(100vh - 160px);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+  }
+  .lightbox__stage img[hidden] {
+    display: none;
+  }
+  .lightbox__close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+  }
+  .lightbox__nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+    padding: 16px 0 28px;
+  }
+  .lightbox__nav button {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+  .lightbox__nav button:hover {
+    opacity: 0.6;
+  }
+</style>

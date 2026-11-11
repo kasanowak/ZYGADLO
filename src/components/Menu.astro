@@ -1,0 +1,165 @@
+---
+import { nav, site } from '../data/site';
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => (href === '/' ? path === '/' : path === href || path.startsWith(href + '/'));
+---
+<div class="menu" id="site-menu" data-menu hidden>
+  <div class="menu__panel" role="dialog" aria-modal="true" aria-label="Menu">
+    <div class="menu__top">
+      <a href="/" class="menu__logo">ANDRZEJ<br />ŻYGADŁO</a>
+      <button type="button" class="menu__close" data-menu-close aria-label="Zamknij menu">
+        <svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true">
+          <path d="M1 1l13 13M14 1L1 14" stroke="currentColor" stroke-width="1.2"></path>
+        </svg>
+      </button>
+    </div>
+    <p class="menu__word display" aria-hidden="true">Menu</p>
+    <nav class="menu__nav" aria-label="Główna">
+      <ul>
+        {
+          nav.map((item) => (
+            <li>
+              <a href={item.href} class:list={{ 'is-active': isActive(item.href) }} aria-current={isActive(item.href) ? 'page' : undefined}>
+                {item.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <div class="menu__contact">
+      <a href={`mailto:${site.email}`} class="u">{site.email}</a>
+      <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>
+      <a href={site.facebook} class="u" target="_blank" rel="noopener">Facebook</a>
+    </div>
+  </div>
+</div>
+
+<style>
+  .menu {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: rgba(28, 28, 28, 0.2);
+  }
+  .menu[hidden] {
+    display: none;
+  }
+  .menu__panel {
+    position: relative;
+    min-height: 100%;
+    max-height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: var(--header-top) var(--g) clamp(32px, 4vw, 80px);
+    background: var(--dark);
+    color: var(--white);
+    animation: menu-in 0.35s ease both;
+  }
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+    }
+  }
+  .menu__top {
+    position: relative;
+    z-index: 1;
+  }
+  .menu__logo {
+    display: block;
+    font-weight: 700;
+    font-size: var(--fs-logo);
+    line-height: 1.25;
+    letter-spacing: 0;
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .menu__close {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: 0.3em 0 0 -14px;
+    color: var(--white);
+  }
+  .menu__word {
+    position: absolute;
+    top: calc(var(--header-top) - 0.08em * 1);
+    right: var(--g);
+    margin: 0;
+    color: #f7f7f7;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+  .menu__nav {
+    flex: 1;
+    padding: clamp(24px, 4vw, 70px) 0 clamp(40px, 6vw, 120px) calc(var(--list-l) - var(--g));
+  }
+  .menu__nav ul {
+    display: grid;
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    column-gap: clamp(60px, 7vw, 140px);
+  }
+  .menu__nav a {
+    display: inline-block;
+    font-size: var(--fs-menu);
+    line-height: 2.98;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.5);
+    transition:
+      color 0.25s ease,
+      transform 0.25s ease;
+  }
+  .menu__nav a:hover,
+  .menu__nav a:focus-visible {
+    color: var(--white);
+    transform: translateX(0.6em);
+  }
+  .menu__nav a.is-active {
+    color: var(--white);
+  }
+  .menu__contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px clamp(24px, 3vw, 64px);
+    font-size: clamp(14px, 1vw, 18px);
+    letter-spacing: 0.05em;
+  }
+  .menu__contact .u {
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .menu__contact a:hover {
+    opacity: 0.7;
+  }
+
+  @media (max-width: 899px) {
+    .menu__panel {
+      padding-top: 10px;
+    }
+    .menu__logo {
+      display: none;
+    }
+    .menu__close {
+      margin: 0 0 0 -14px;
+    }
+    .menu__word {
+      top: 14px;
+    }
+    .menu__nav {
+      padding: 24px 0 48px;
+    }
+    .menu__nav ul {
+      grid-template-rows: none;
+      grid-auto-flow: row;
+    }
+    .menu__nav a {
+      line-height: 1.8;
+    }
+    .menu__contact {
+      justify-content: space-between;
+    }
+  }
+</style>

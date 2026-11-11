@@ -1,0 +1,309 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import NewsList from '../components/NewsList.astro';
+import ArrowButton from '../components/ArrowButton.astro';
+import { getFeed, getPaintings, paintingCaption } from '../lib/content';
+import { site } from '../data/site';
+
+const paintings = await getPaintings();
+const featured = paintings
+  .filter((p) => p.data.naStronieGlownej !== undefined)
+  .sort((a, b) => (a.data.naStronieGlownej ?? 0) - (b.data.naStronieGlownej ?? 0));
+const slides = featured.length ? featured : paintings.slice(0, 4);
+const news = (await getFeed()).slice(0, 5);
+---
+<Base home>
+  <section class="hero" data-hero aria-label="Wybrane prace">
+    <h1 class="hero__name display">Andrzej<br />Żygadło</h1>
+    <p class="hero__tagline">
+      {site.tagline.map((line) => <span>{line}</span>)}
+    </p>
+    <div class="hero__progress" aria-hidden="true"><span data-progress></span></div>
+
+    <div class="hero__slider">
+      <ul class="hero__track" data-track tabindex="0" aria-label="Slider z wybranymi pracami – przewiń w bok">
+        {
+          slides.map((p, i) => {
+            const portrait = p.data.obraz.width < p.data.obraz.height;
+            const cap = paintingCaption(p.data);
+            return (
+              <li class:list={['slide', { 'slide--portrait': portrait }]} data-slide>
+                <a href={`/galeria/${p.id}`} class="slide__link">
+                  <Image
+                    src={p.data.obraz}
+                    alt={p.data.alt ?? p.data.title}
+                    widths={[400, 700, 1000, 1400, 1800]}
+                    sizes={portrait ? '(min-width: 900px) 30vw, 58vw' : '(min-width: 900px) 47vw, 91vw'}
+                    loading={i < 2 ? 'eager' : 'lazy'}
+                    fetchpriority={i === 0 ? 'high' : undefined}
+                  />
+                  <span class="slide__caption caption">{cap.title}, {cap.details.join(' | ')}</span>
+                </a>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </div>
+
+    <ArrowButton href="/galeria" tone="white" class="hero__more">Zobacz więcej</ArrowButton>
+  </section>
+
+  <section class="home-news" aria-labelledby="home-news-title">
+    <h2 class="display home-news__title" id="home-news-title">Nowości</h2>
+    <div class="home-news__list">
+      <NewsList items={news} headingLevel="h3" />
+      <div class="home-news__more">
+        <ArrowButton href="/nowosci">Zobacz więcej</ArrowButton>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  const track = document.querySelector<HTMLElement>('[data-track]');
+  const bar = document.querySelector<HTMLElement>('[data-progress]');
+  if (track) {
+    const slides = Array.from(track.querySelectorAll<HTMLElement>('[data-slide]'));
+    let current = 0;
+    const indexFromScroll = () => {
+      const left = track.scrollLeft;
+      let best = 0;
+      slides.forEach((s, i) => {
+        if (Math.abs(s.offsetLeft - left) < Math.abs(slides[best].offsetLeft - left)) best = i;
+      });
+      return best;
+    };
+    const update = () => {
+      current = indexFromScroll();
+      if (bar) bar.style.height = `${((current + 1) / slides.length) * 100}%`;
+      slides.forEach((s, i) => s.classList.toggle('is-active', i === current));
+    };
+    const go = (i: number) => {
+      const target = slides[(i + slides.length) % slides.length];
+      track.scrollTo({ left: target.offsetLeft, behavior: 'smooth' });
+    };
+    track.addEventListener('scroll', () => requestAnimationFrame(update), { passive: true });
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); }
+    });
+    // kliknięcie w kolejny (częściowo widoczny) obraz przewija slider
+    slides.forEach((s, i) =>
+      s.querySelector('a')?.addEventListener('click', (e) => {
+        if (i !== current) { e.preventDefault(); go(i); }
+      }),
+    );
+    // automatyczne przewijanie co 6 s (wstrzymane po najechaniu / focusie)
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let paused = false;
+    track.addEventListener('pointerenter', () => (paused = true));
+    track.addEventListener('pointerleave', () => (paused = false));
+    track.addEventListener('focusin', () => (paused = true));
+    track.addEventListener('focusout', () => (paused = false));
+    if (!reduce && slides.length > 1) {
+      setInterval(() => { if (!paused && !document.hidden) go(current + 1); }, 6000);
+    }
+    update();
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    min-height: clamp(640px, 59.85vw, 1149px);
+    background: var(--grey);
+    overflow: hidden;
+  }
+  .hero__name {
+    position: absolute;
+    z-index: 3;
+    top: clamp(25px, 3.5vw, 67px);
+    right: var(--g);
+    margin: 0;
+    text-align: right;
+    color: var(--white);
+    pointer-events: none;
+  }
+  .hero__tagline {
+    position: absolute;
+    z-index: 2;
+    top: 20.6vw;
+    left: 9.8vw;
+    font-size: var(--fs-lead);
+    line-height: 1.65;
+    letter-spacing: 0.05em;
+    color: var(--white);
+  }
+  .hero__tagline span {
+    display: block;
+  }
+  .hero__progress {
+    position: absolute;
+    top: 42.97vw;
+    left: 9.84vw;
+    width: 1px;
+    height: clamp(55px, 5.83vw, 112px);
+    background: var(--white);
+  }
+  .hero__progress span {
+    display: block;
+    width: 1px;
+    height: 25%;
+    background: var(--ink);
+    transition: height 0.4s ease;
+  }
+  .hero__slider {
+    position: absolute;
+    top: 10.68vw;
+    left: 33.44vw;
+    right: 0;
+  }
+  .hero__track {
+    display: flex;
+    align-items: center;
+    gap: 9.3vw;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    padding-right: 30vw;
+    height: 36.5vw;
+    box-sizing: content-box;
+    padding-bottom: 4vw;
+  }
+  .hero__track::-webkit-scrollbar {
+    display: none;
+  }
+  .slide {
+    position: relative;
+    flex: none;
+    scroll-snap-align: start;
+  }
+  .slide__link {
+    display: block;
+  }
+  .slide :global(img) {
+    width: 46.875vw;
+    height: auto;
+    max-height: 36.46vw;
+    object-fit: contain;
+    object-position: left center;
+  }
+  .slide--portrait :global(img) {
+    width: auto;
+    height: 36.46vw;
+  }
+  .slide__caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 1.9vw;
+    text-align: center;
+    color: #000;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .slide.is-active .slide__caption,
+  :global(html:not(.js)) .slide__caption {
+    opacity: 1;
+  }
+  :global(.hero__more) {
+    position: absolute !important;
+    right: calc(var(--g) + 1.35vw);
+    bottom: 5.68vw;
+  }
+
+  .home-news {
+    position: relative;
+    padding: clamp(24px, 8.6vw, 166px) var(--g) clamp(64px, 9.5vw, 182px);
+  }
+  .home-news__title {
+    margin: 0;
+    text-align: right;
+  }
+  .home-news__list {
+    margin-top: clamp(16px, 4.8vw, 92px);
+    padding-left: calc(var(--list-l) - var(--g));
+  }
+  .home-news__more {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: clamp(24px, 3.2vw, 62px);
+    padding-right: 1.35vw;
+  }
+
+  @media (max-width: 899px) {
+    .hero {
+      min-height: 0;
+      padding: 25px var(--g) 30px;
+      display: flex;
+      flex-direction: column;
+    }
+    .hero__name {
+      position: static;
+      align-self: flex-end;
+    }
+    .hero__tagline {
+      position: static;
+      margin-top: -8px;
+    }
+    .hero__slider {
+      position: static;
+      margin: 0 calc(var(--g) * -1) 0 0;
+    }
+    .hero__track {
+      height: auto;
+      gap: 35px;
+      padding: 0 40vw 40px 0;
+    }
+    .slide :global(img) {
+      width: 91vw;
+      max-height: 70.8vw;
+    }
+    .slide--portrait :global(img) {
+      width: auto;
+      height: 70.8vw;
+    }
+    .slide__caption {
+      position: static;
+      display: block;
+      max-width: 75vw;
+      margin-top: 10px;
+      white-space: normal;
+      text-align: left;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .hero__track {
+      align-items: flex-start;
+    }
+    .hero__progress {
+      order: 5;
+      position: relative;
+      top: auto;
+      left: auto;
+      height: 55px;
+      margin-top: 4px;
+    }
+    .hero :global(.hero__more) {
+      position: relative !important;
+      right: auto;
+      bottom: auto;
+      order: 6;
+      align-self: flex-end;
+      margin-top: -50px;
+    }
+    .home-news {
+      padding-top: 24px;
+    }
+    .home-news__list {
+      padding-left: 0;
+    }
+    .home-news__more {
+      padding-right: 0;
+    }
+  }
+</style>

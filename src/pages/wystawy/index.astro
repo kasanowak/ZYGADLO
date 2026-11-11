@@ -1,0 +1,20 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import RowList from '../../components/RowList.astro';
+import MoreButton from '../../components/MoreButton.astro';
+import { getPosts } from '../../lib/content';
+
+const PAGE = 11;
+const entries = await getPosts('wystawy');
+---
+<Base title="Wystawy" description="Wystawy indywidualne i zbiorowe Andrzeja Żygadły.">
+  <PageHead title="Wystawy" />
+  <section class="list-wrap list-wrap--spaced" data-listing data-page-size={PAGE}>
+    <RowList entries={entries} base="/wystawy" initial={PAGE} />
+    {entries.length > PAGE && <MoreButton />}
+  </section>
+</Base>
+<script>
+  import '../../scripts/listing';
+</script>

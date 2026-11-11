@@ -1,0 +1,21 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import NewsList from '../../components/NewsList.astro';
+import MoreButton from '../../components/MoreButton.astro';
+import { getFeed, newsFilters } from '../../lib/content';
+
+const PAGE = 10;
+const feed = await getFeed();
+---
+<Base title="Nowości" description="Nowości: wystawy, wywiady, publikacje, obozy badawcze i nowe prace Andrzeja Żygadły.">
+  <PageHead title="Nowości" filters={newsFilters} />
+  <section class="list-wrap" data-listing data-page-size={PAGE}>
+    <NewsList items={feed} initial={PAGE} />
+    <p class="empty-state" data-empty hidden>Brak wpisów w tej kategorii.</p>
+    {feed.length > PAGE && <MoreButton />}
+  </section>
+</Base>
+<script>
+  import '../../scripts/listing';
+</script>

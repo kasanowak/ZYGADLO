@@ -1,0 +1,186 @@
+---
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ArrowButton from '../../components/ArrowButton.astro';
+import { getPaintings, paintingCaption } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const all = await getPaintings();
+  return all.map((entry, i) => ({
+    params: { slug: entry.id },
+    props: { entry, next: all[(i + 1) % all.length] },
+  }));
+}
+
+const { entry, next } = Astro.props;
+const d = entry.data;
+const cap = paintingCaption(d);
+const { Content } = await render(entry);
+const hasBody = Boolean(entry.body?.trim());
+const alt = d.alt ?? d.title;
+---
+<Base title={d.title} description={cap.full} back={{ href: '/galeria', label: 'Galeria' }}>
+  <article class="painting">
+    <div class="painting__back">
+      <ArrowButton href="/galeria" back>Galeria</ArrowButton>
+    </div>
+    <figure class="painting__main">
+      <Image
+        src={d.obraz}
+        alt={alt}
+        widths={[480, 800, 1200, 1600, 2000]}
+        sizes="(min-width: 900px) 63vw, 100vw"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <figcaption class="caption painting__caption">
+        <h1 class="painting__title">{cap.title}</h1>
+        <span class="painting__sep" aria-hidden="true">|</span>
+        <span>{cap.details.join('  |  ')}</span>
+      </figcaption>
+    </figure>
+
+    <div class="painting__detail">
+      <Image
+        src={d.detal ?? d.obraz}
+        alt=""
+        widths={[800, 1280, 1920, 2560]}
+        sizes="100vw"
+        loading="lazy"
+        class:list={{ 'is-zoom': !d.detal }}
+      />
+    </div>
+
+    {
+      hasBody && (
+        <div class="article painting__text prose">
+          <Content />
+        </div>
+      )
+    }
+
+    {
+      next && next.id !== entry.id && (
+        <nav class="painting__next" aria-label="Następna praca">
+          <hr class="divider" />
+          <a href={`/galeria/${next.id}`} class="painting__next-link reveal">
+            <Image src={next.data.obraz} alt="" widths={[400, 730, 1100]} sizes="(min-width: 900px) 38vw, 80vw" loading="lazy" />
+            <span class="caption">Następna praca: {next.data.title}</span>
+          </a>
+        </nav>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .painting {
+    padding-top: clamp(80px, 5.2vw, 100px);
+    padding-bottom: clamp(48px, 6vw, 110px);
+  }
+  .painting__back {
+    display: none;
+  }
+  .painting__main {
+    margin: 0 auto;
+    width: min(63vw, 1210px);
+  }
+  .painting__main :global(img) {
+    width: 100%;
+  }
+  .painting__caption {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 1em;
+    margin-top: clamp(16px, 1.8vw, 34px);
+    text-align: center;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .painting__title {
+    font: inherit;
+    letter-spacing: inherit;
+  }
+  .painting__detail {
+    margin-top: clamp(48px, 7.4vw, 142px);
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--grey);
+  }
+  .painting__detail :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .painting__detail :global(img.is-zoom) {
+    transform: scale(1.55);
+    transform-origin: 45% 92%;
+  }
+  .painting__text {
+    margin-top: clamp(40px, 5.6vw, 108px);
+    padding-left: max(240px, 32.7vw);
+  }
+  .painting__next {
+    margin-top: clamp(48px, 6vw, 116px);
+    padding: 0 var(--g) 0 15vw;
+  }
+  .painting__next .divider {
+    max-width: 1430px;
+  }
+  .painting__next-link {
+    display: block;
+    width: min(38vw, 730px);
+    margin: clamp(48px, 7.3vw, 140px) auto 0;
+    text-align: center;
+  }
+  .painting__next-link :global(img) {
+    width: 100%;
+  }
+  .painting__next-link .caption {
+    display: inline-block;
+    margin-top: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  .painting__next-link:hover .caption,
+  .painting__next-link:focus-visible .caption {
+    opacity: 1;
+  }
+
+  @media (max-width: 899px) {
+    .painting {
+      padding-top: 64px;
+    }
+    .painting__back {
+      display: block;
+      padding: 0 var(--g) 16px;
+    }
+    .painting__main {
+      width: 100%;
+    }
+    .painting__caption {
+      flex-direction: column;
+      padding: 0 var(--g);
+    }
+    .painting__sep {
+      display: none;
+    }
+    .painting__detail {
+      aspect-ratio: 360 / 220;
+    }
+    .painting__text {
+      padding-left: var(--g);
+    }
+    .painting__next {
+      padding: 0 var(--g);
+    }
+    .painting__next-link {
+      width: 80%;
+    }
+    .painting__next-link .caption {
+      opacity: 1;
+    }
+  }
+</style>

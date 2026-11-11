@@ -1,0 +1,139 @@
+---
+/**
+ * Lista z etykietą po lewej i strzałką „↓” rozwijającą resztę pozycji.
+ * Użycie w MDX:
+ *   <Lista tytul="Wybrane wystawy" widoczne={5}>
+ *   - pozycja 1
+ *   - pozycja 2
+ *   </Lista>
+ */
+interface Props {
+  tytul?: string;
+  /** Ile pozycji pokazać przed rozwinięciem (domyślnie wszystkie). */
+  widoczne?: number;
+}
+const { tytul, widoczne = 0 } = Astro.props;
+---
+<section class="lista" data-lista data-visible={widoczne || undefined}>
+  {tytul && <h2 class="lista__label label">{tytul}</h2>}
+  <div class="lista__body">
+    <div class="lista__items sans-list"><slot /></div>
+    <button type="button" class="lista__toggle" data-lista-toggle aria-expanded="false" hidden>
+      <svg width="14" height="26" viewBox="0 0 14 26" aria-hidden="true">
+        <path
+          d="M6.71739 25.4639C6.53028 25.4639 6.35399 25.3899 6.22255 25.256L0.205666 19.1298C0.0726788 18.9944 0 18.8165 0 18.626C0 18.4339 0.0726788 18.2544 0.205666 18.119C0.338653 17.9836 0.516484 17.9096 0.703594 17.9096C0.89225 17.9096 1.06853 17.9836 1.20152 18.1174L6.01534 23.0203V0.714809C6.01534 0.522723 6.08802 0.344808 6.21791 0.209404C6.3509 0.0755743 6.52564 0 6.71275 0C7.10398 0 7.42098 0.321191 7.42098 0.714809V23.0171L12.2317 18.1158C12.3647 17.982 12.541 17.908 12.7281 17.908C12.9167 17.908 13.093 17.9836 13.226 18.1174C13.359 18.2528 13.4317 18.4307 13.4317 18.6228C13.4317 18.8133 13.359 18.9944 13.226 19.1298L7.21222 25.2545C7.08233 25.3883 6.9045 25.4639 6.71739 25.4639Z"
+          fill="currentColor"></path>
+      </svg>
+      <span class="visually-hidden" data-lista-text>Pokaż wszystkie</span>
+    </button>
+  </div>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-lista]').forEach((lista) => {
+    const visible = Number(lista.dataset.visible || 0);
+    const items = Array.from(lista.querySelectorAll<HTMLElement>('.lista__items li'));
+    const btn = lista.querySelector<HTMLButtonElement>('[data-lista-toggle]');
+    const text = lista.querySelector<HTMLElement>('[data-lista-text]');
+    if (!btn || !visible || items.length <= visible) return;
+    let open = false;
+    const apply = () => {
+      items.forEach((li, i) => (li.hidden = !open && i >= visible));
+      btn.setAttribute('aria-expanded', String(open));
+      btn.classList.toggle('is-open', open);
+      if (text) text.textContent = open ? 'Zwiń listę' : 'Pokaż wszystkie';
+    };
+    btn.hidden = false;
+    btn.addEventListener('click', () => {
+      open = !open;
+      apply();
+    });
+    apply();
+  });
+</script>
+
+<style>
+  .lista {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: clamp(20px, 2.1vw, 40px) 0 clamp(20px, 2.5vw, 48px);
+    margin: clamp(32px, 2.6vw, 50px) 0;
+  }
+  .lista + :global(.lista) {
+    border-top: 0;
+    margin-top: calc(clamp(32px, 2.6vw, 50px) * -1);
+  }
+  .lista__label {
+    font-weight: 400;
+    margin-bottom: 12px;
+  }
+  .lista__items :global(ul) {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .lista__items :global(li[hidden]) {
+    display: none;
+  }
+  .lista__items :global(em) {
+    font-style: italic;
+  }
+  .lista__toggle {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin: 8px 0 0 -14px;
+    color: var(--ink);
+  }
+  .lista__toggle svg {
+    transition: transform 0.3s ease;
+  }
+  .lista__toggle.is-open svg {
+    transform: rotate(180deg);
+  }
+  .lista__toggle:hover svg {
+    transform: translateY(3px);
+  }
+  .lista__toggle.is-open:hover svg {
+    transform: rotate(180deg) translateY(3px);
+  }
+
+  @media (min-width: 900px) {
+    .lista {
+      display: grid;
+      grid-template-columns: calc(var(--article-l) - var(--list-l)) minmax(0, var(--article-w));
+      max-width: none;
+      margin-left: calc(var(--list-l) - var(--article-l));
+      border: 0;
+      position: relative;
+    }
+    .lista::before,
+    .lista::after {
+      content: '';
+      position: absolute;
+      left: calc(var(--article-l) - var(--list-l));
+      width: var(--article-w);
+      border-top: 1px solid var(--line);
+    }
+    .lista::before {
+      top: 0;
+    }
+    .lista::after {
+      bottom: 0;
+    }
+    .lista + :global(.lista)::before {
+      display: none;
+    }
+    .lista__label {
+      grid-column: 1;
+      padding-right: 6.15vw;
+      text-align: right;
+      margin: 0;
+      line-height: 1.8;
+    }
+    .lista__body {
+      grid-column: 2;
+    }
+  }
+</style>

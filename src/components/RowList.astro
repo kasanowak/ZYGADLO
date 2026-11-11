@@ -1,0 +1,96 @@
+---
+/** Lista wierszy (obozy badawcze, wystawy): nazwa + okres | opis | strzałka. */
+import type { CollectionEntry } from 'astro:content';
+import Arrow from './Arrow.astro';
+
+interface Props {
+  entries: CollectionEntry<'obozy' | 'wystawy'>[];
+  base: string;
+  initial?: number;
+}
+const { entries, base, initial = 0 } = Astro.props;
+---
+<ul class="rows">
+  {
+    entries.map((e, i) => (
+      <li class="rows__item" data-item hidden={initial > 0 && i >= initial}>
+        <a href={`${base}/${e.id}`} class="rows__link">
+          <span class="rows__name">
+            <span class="rows__title">{e.data.nazwa ?? e.data.title}</span>
+            {e.data.okres && <span class="rows__period">{e.data.okres}</span>}
+          </span>
+          <span class="rows__desc">{e.data.opis ?? e.data.title}</span>
+          <Arrow class="rows__arrow" />
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .rows__item {
+    border-bottom: 1px solid var(--line);
+  }
+  .rows__link {
+    display: grid;
+    grid-template-columns: calc(var(--article-l) - var(--list-l)) minmax(0, 1fr) auto;
+    align-items: start;
+    padding: clamp(16px, 0.6vw, 12px) 0 clamp(16px, 1.6vw, 30px);
+    min-height: clamp(0px, 11.4vw, 220px);
+  }
+  .rows__title {
+    display: block;
+    font-size: var(--fs-lead);
+    line-height: 1.65;
+    letter-spacing: 0.05em;
+  }
+  .rows__period {
+    display: block;
+    font-style: italic;
+    font-size: var(--fs-label);
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .rows__desc {
+    max-width: 1050px;
+    padding: 0.35em 2em 0 0;
+    font-style: italic;
+    font-size: var(--fs-body);
+    line-height: 1.79;
+    letter-spacing: 0.05em;
+  }
+  .rows__link :global(.rows__arrow) {
+    margin: clamp(10px, 0.9vw, 18px) clamp(0px, 1.9vw, 36px) 0 0;
+  }
+  .rows__link:hover :global(.rows__arrow) {
+    transform: translateX(8px);
+  }
+  .rows__link:hover .rows__title {
+    color: var(--muted);
+  }
+
+  @media (max-width: 899px) {
+    .rows__link {
+      grid-template-columns: 1fr auto;
+      padding: 20px 0 28px;
+      min-height: 0;
+    }
+    .rows__name {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .rows__link :global(.rows__arrow) {
+      grid-column: 2;
+      grid-row: 1;
+      margin: 0.55em 0 0;
+    }
+    .rows__desc {
+      grid-column: 1 / -1;
+      padding: 16px 0 0;
+    }
+    .rows__period {
+      line-height: 1.8;
+    }
+  }
+</style>

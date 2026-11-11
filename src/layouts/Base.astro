@@ -1,0 +1,122 @@
+---
+import '@fontsource/libre-baskerville/400.css';
+import '@fontsource/libre-baskerville/400-italic.css';
+import '@fontsource/libre-baskerville/700.css';
+import '@fontsource/roboto/300.css';
+import '@fontsource/roboto/300-italic.css';
+import '@fontsource/roboto/500.css';
+import '@fontsource/lato/300.css';
+import '../styles/global.css';
+
+import Header from '../components/Header.astro';
+import Menu from '../components/Menu.astro';
+import Kontakt from '../components/Kontakt.astro';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Przycisk „wstecz” pod hamburgerem (wpisy, obrazy). */
+  back?: { href: string; label: string };
+  /** Strona główna: logo pojawia się dopiero po przewinięciu nagłówka. */
+  home?: boolean;
+  /** Ukryj sekcję „Kontakt” na dole (strona /kontakt). */
+  noKontakt?: boolean;
+  image?: string;
+}
+
+const { title, description = site.description, back, home = false, noKontakt = false, image } = Astro.props;
+const fullTitle = title ? `${title} – ${site.name}` : `${site.name} – malarstwo, rysunek, grafika, fotografia`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:locale" content="pl_PL" />
+    {image && <meta property="og:image" content={new URL(image, Astro.site)} />}
+    <script is:inline>document.documentElement.classList.add('js');</script>
+  </head>
+  <body id="top" data-home={home ? '' : undefined}>
+    <a class="skip-link" href="#tresc">Przejdź do treści</a>
+    <Header back={back} hideLogo={home} />
+    <Menu />
+    <main id="tresc">
+      <slot />
+    </main>
+    {!noKontakt && <Kontakt />}
+
+    <script>
+      // --- nagłówek: stan po przewinięciu ---
+      const header = document.querySelector<HTMLElement>('[data-header]');
+      const hero = document.querySelector<HTMLElement>('[data-hero]');
+      const onScroll = () => {
+        const limit = hero ? hero.offsetHeight - 120 : 10;
+        header?.classList.toggle('is-scrolled', window.scrollY > limit);
+      };
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
+
+      // --- menu ---
+      const menu = document.querySelector<HTMLElement>('[data-menu]');
+      const openBtn = document.querySelector<HTMLButtonElement>('[data-menu-open]');
+      const closeBtn = document.querySelector<HTMLButtonElement>('[data-menu-close]');
+      const openMenu = () => {
+        if (!menu) return;
+        menu.hidden = false;
+        document.body.classList.add('menu-open');
+        openBtn?.setAttribute('aria-expanded', 'true');
+        closeBtn?.focus();
+      };
+      const closeMenu = () => {
+        if (!menu || menu.hidden) return;
+        menu.hidden = true;
+        document.body.classList.remove('menu-open');
+        openBtn?.setAttribute('aria-expanded', 'false');
+        openBtn?.focus();
+      };
+      openBtn?.addEventListener('click', openMenu);
+      closeBtn?.addEventListener('click', closeMenu);
+      menu?.addEventListener('click', (e) => {
+        if (e.target === menu) closeMenu();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeMenu();
+        if (e.key === 'Tab' && menu && !menu.hidden) {
+          const f = menu.querySelectorAll<HTMLElement>('a, button');
+          const first = f[0];
+          const last = f[f.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      });
+
+      // --- przenikanie elementów przy przewijaniu ---
+      const io = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('is-visible');
+              io.unobserve(entry.target);
+            }
+          }
+        },
+        { rootMargin: '0px 0px -5% 0px' },
+      );
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    </script>
+  </body>
+</html>

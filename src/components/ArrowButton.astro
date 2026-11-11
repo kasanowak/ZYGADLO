@@ -1,0 +1,76 @@
+---
+/**
+ * Przycisk z projektu („Zobacz więcej →” / „← Galeria”):
+ * kursywa + długa strzałka na szarym (lub białym) prostokącie.
+ */
+import Arrow from './Arrow.astro';
+
+interface Props {
+  href?: string;
+  back?: boolean;
+  /** Kolor prostokąta – biały na szarym tle sekcji. */
+  tone?: 'grey' | 'white';
+  class?: string;
+  [key: string]: any;
+}
+const { href, back = false, tone = 'grey', class: cls, ...rest } = Astro.props;
+const Tag = href ? 'a' : 'button';
+---
+<Tag
+  href={href}
+  class:list={['abtn', { 'abtn--back': back, 'abtn--white': tone === 'white' }, cls]}
+  {...rest}
+>
+  {back && <Arrow dir="left" />}
+  <span class="abtn__label"><slot /></span>
+  {!back && <Arrow dir="right" />}
+</Tag>
+<style>
+  .abtn {
+    --box: var(--grey);
+    position: relative;
+    isolation: isolate;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75em;
+    min-height: 44px;
+    padding: 0 0.6em 0 0;
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: var(--fs-btn);
+    letter-spacing: 0.06em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .abtn--white {
+    --box: var(--white);
+  }
+  .abtn::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    top: 4%;
+    bottom: 14%;
+    right: 0;
+    width: 57%;
+    background: var(--box);
+    transition: width 0.35s ease;
+  }
+  .abtn--back {
+    padding: 0 0 0 0.6em;
+  }
+  .abtn--back::before {
+    right: auto;
+    left: 0;
+    width: 2.6em;
+  }
+  .abtn:hover::before {
+    width: 100%;
+  }
+  .abtn:hover :global(.arrow) {
+    transform: translateX(4px);
+  }
+  .abtn--back:hover :global(.arrow) {
+    transform: rotate(180deg) translateX(4px);
+  }
+</style>

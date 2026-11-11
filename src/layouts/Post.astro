@@ -1,0 +1,164 @@
+---
+/** Szablon pojedynczego wpisu: obóz, wystawa, wywiad, publikacja, nowość. */
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+import Base from './Base.astro';
+import ArrowButton from '../components/ArrowButton.astro';
+import Lista from '../components/Lista.astro';
+import Wideo from '../components/Wideo.astro';
+import Galeria from '../components/Galeria.astro';
+import Arrow from '../components/Arrow.astro';
+import { sections, formatDate, type PostCollection } from '../lib/content';
+
+interface Props {
+  entry: CollectionEntry<PostCollection>;
+}
+const { entry } = Astro.props;
+const data = entry.data as CollectionEntry<PostCollection>['data'] & { zrodlo?: string };
+const section = sections[entry.collection as PostCollection];
+const { Content } = await render(entry);
+
+Astro.locals.galeria = data.galeria;
+const galleryInBody = /<Galeria\b/.test(entry.body ?? '');
+const notka = data.notka ?? data.zrodlo;
+const back = { href: section.href, label: section.label };
+---
+<Base title={data.nazwa ? `${data.nazwa} – ${data.title}` : data.title} description={data.opis} back={back}>
+  <article class="article post">
+    <div class="post__back">
+      <ArrowButton href={back.href} back>{back.label}</ArrowButton>
+    </div>
+    <header class="post__head">
+      {
+        data.nazwa && (
+          <p class="post__name">
+            {data.nazwa}
+            {(data.okres || data.lokalizacja) && (
+              <span class="post__period">
+                {data.okres}
+                {data.lokalizacja && ` (${data.lokalizacja})`}
+              </span>
+            )}
+          </p>
+        )
+      }
+      {!data.nazwa && (
+        <p class="post__period">
+          <time datetime={data.data.toISOString().slice(0, 10)}>{formatDate(data.data)}</time> · {section.badge}
+        </p>
+      )}
+      <h1 class="post__title lead">{data.title}</h1>
+      {notka && <p class="post__note caption">{notka}</p>}
+    </header>
+    <hr class="divider post__divider" />
+    <div class="post__body prose">
+      <Content components={{ Lista, Wideo, Galeria }} />
+      {!galleryInBody && data.galeria.length > 0 && <Galeria zdjecia={data.galeria} />}
+    </div>
+    {
+      data.pliki.length > 0 && (
+        <section class="post__files">
+          <h2 class="label post__files-label">Pliki do pobrania</h2>
+          <ul>
+            {data.pliki.map((p) => (
+              <li>
+                <a href={p.url} download>
+                  {p.nazwa}
+                  <Arrow dir="down" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .post {
+    padding-top: clamp(84px, 11.3vw, 217px);
+    padding-bottom: clamp(56px, 6.5vw, 125px);
+  }
+  .post__back {
+    display: none;
+  }
+  .post__name {
+    font-size: var(--fs-lead);
+    line-height: 1.65;
+    letter-spacing: 0.05em;
+  }
+  .post__period {
+    display: block;
+    font-style: italic;
+    font-size: var(--fs-label);
+    line-height: 1.6;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+  .post__title {
+    margin-top: clamp(20px, 3.4vw, 66px);
+    font-weight: 400;
+  }
+  .post__note {
+    margin-top: clamp(8px, 1vw, 16px);
+  }
+  .post__divider {
+    max-width: min(1200px, calc(100vw - var(--article-l) - var(--g))) !important;
+    margin: clamp(20px, 2.9vw, 56px) 0 clamp(28px, 3vw, 58px);
+  }
+  .post__body {
+    color: #1b1c1c;
+  }
+  .post__files {
+    margin-top: clamp(32px, 2.6vw, 50px);
+    padding-top: clamp(20px, 2.5vw, 48px);
+    border-top: 1px solid var(--line);
+  }
+  .post__files ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px clamp(28px, 2.9vw, 56px);
+  }
+  .post__files a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--sans);
+    font-weight: 300;
+    font-size: var(--fs-body);
+    letter-spacing: 0.05em;
+  }
+  .post__files a :global(.arrow) {
+    width: 0.8em;
+  }
+  .post__files a:hover {
+    opacity: 0.6;
+  }
+  .post__files-label {
+    font-weight: 400;
+    margin-bottom: 8px;
+  }
+
+  @media (min-width: 900px) {
+    .post__files {
+      position: relative;
+    }
+    .post__files-label {
+      position: absolute;
+      left: calc(var(--list-l) - var(--article-l));
+      width: calc(var(--article-l) - var(--list-l) - 6.15vw);
+      text-align: right;
+      margin: 0;
+    }
+  }
+  @media (max-width: 899px) {
+    .post {
+      padding-top: 72px;
+    }
+    .post__back {
+      display: block;
+      margin: 0 0 24px -0.1em;
+    }
+  }
+</style>
