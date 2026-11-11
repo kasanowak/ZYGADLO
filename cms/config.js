@@ -135,6 +135,9 @@ window.CMS_CONFIG = {
     name: 'github',
     repo: 'kasanowak/ZYGADLO',
     branch: 'master',
+    // Tylko logowanie tokenem. „Zaloguj przez GitHub” wymaga własnego serwera OAuth
+    // (np. sveltia-cms-auth) – wtedy dodaj 'oauth' i ustaw base_url.
+    auth_methods: ['token'],
     commit_messages: {
       create: 'CMS: dodano {{collection}} „{{slug}}”',
       update: 'CMS: zmieniono {{collection}} „{{slug}}”',
