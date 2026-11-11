@@ -171,8 +171,8 @@ const news = (await getFeed()).slice(0, 5);
     overflow: hidden;
   }
   .hero {
-    /* nazwisko: delikatnie ciemniejsze od tła (dekoracyjne); opis: pełny kontrast */
-    --hero-name: #d4d4d4;
+    /* nazwisko: biały jak w makiecie (#ffffff); opis: pełny kontrast */
+    --hero-name: var(--white);
     --hero-text: var(--ink);
   }
   .hero__name {
