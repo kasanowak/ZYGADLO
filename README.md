@@ -104,3 +104,21 @@ Część treści to wypełniacze z makiety. Sprawdź je i podmień:
 - przykładowa aktualność `src/content/nowosci/nowa-strona.mdx`;
 - link do Facebooka i adres „Design by NUO” w `src/data/site.ts`;
 - `public/pliki/przyklad.pdf` (atrapa pliku do pobrania).
+
+## Wdrożenie (GitHub Actions)
+
+Workflow `.github/workflows/deploy.yml` przy każdym pushu na `master` buduje stronę
+i wysyła zawartość `dist/` przez FTP do katalogu `/new/`. Pull requesty są tylko budowane.
+Ręczne uruchomienie: zakładka **Actions → Build i wdrożenie → Run workflow**.
+
+Ustaw w **Settings → Secrets and variables → Actions**:
+
+| Sekret | Opis |
+|---|---|
+| `FTP_SERVER` | adres serwera FTP |
+| `FTP_USERNAME` | login |
+| `FTP_PASSWORD` | hasło |
+
+Opcjonalne zmienne (zakładka *Variables*): `FTP_PROTOCOL` (`ftp` / `ftps` / `ftps-legacy`, domyślnie `ftp`)
+i `FTP_PORT` (domyślnie `21`). Wysyłane są tylko zmienione pliki (stan synchronizacji
+trzymany w `/new/.ftp-deploy-sync-state.json`).
