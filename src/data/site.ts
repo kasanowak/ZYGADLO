@@ -1,11 +1,14 @@
+// Dane kontaktowe edytowane w CMS („Ustawienia strony”).
+import ustawienia from './ustawienia.json';
+
 export const site = {
   name: 'Andrzej Żygadło',
-  description: 'Andrzej Żygadło – malarstwo, rysunek, grafika, fotografia.',
+  description: ustawienia.opis,
   tagline: ['Malarstwo,', 'rysunek,', 'grafika,', 'fotografia.'],
-  email: 'andzygadlo@o2.pl',
-  phone: '+48 669 691 778',
-  // TODO: uzupełnij adres profilu na Facebooku.
-  facebook: 'https://www.facebook.com/',
+  email: ustawienia.email,
+  phone: ustawienia.telefon,
+  facebook: ustawienia.facebook,
+  invite: ustawienia.zaproszenie,
   designBy: { name: 'NUO', url: '#' },
 };
 

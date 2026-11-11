@@ -30,7 +30,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path === href 
     <div class="menu__contact">
       <a href={`mailto:${site.email}`} class="u">{site.email}</a>
       <a href={`tel:${site.phone.replace(/\s/g, '')}`}>{site.phone}</a>
-      <a href={site.facebook} class="u" target="_blank" rel="noopener">Facebook</a>
+      {site.facebook && <a href={site.facebook} class="u" target="_blank" rel="noopener">Facebook</a>}
     </div>
   </div>
 </div>

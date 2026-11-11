@@ -1,0 +1,48 @@
+---
+/**
+ * Bloki treści z pola `sekcje` (edytowane w CMS): tekst, rozwijana lista, wideo, galeria.
+ */
+import { marked } from 'marked';
+import Lista from './Lista.astro';
+import Wideo from './Wideo.astro';
+import Galeria from './Galeria.astro';
+
+type Sekcja =
+  | { typ: 'tekst'; tresc: string }
+  | { typ: 'lista'; tytul?: string; widoczne: number; pozycje: string[] }
+  | { typ: 'wideo'; youtube: string; tytul?: string }
+  | { typ: 'galeria' };
+
+interface Props {
+  sekcje: Sekcja[];
+}
+const { sekcje } = Astro.props;
+
+/** Przyjmuje sam identyfikator albo link (youtube.com/watch?v=…, youtu.be/…, /embed/…, /shorts/…). */
+function youtubeId(value: string) {
+  const v = value.trim();
+  if (!v) return '';
+  const m = v.match(/(?:v=|youtu\.be\/|\/embed\/|\/shorts\/)([\w-]{11})/);
+  return m ? m[1] : v;
+}
+
+const md = (s: string) => marked.parse(s, { async: false }) as string;
+const inline = (s: string) => marked.parseInline(s, { async: false }) as string;
+---
+{
+  sekcje.map((s) => {
+    if (s.typ === 'tekst') return <Fragment set:html={md(s.tresc)} />;
+    if (s.typ === 'lista')
+      return (
+        <Lista tytul={s.tytul} widoczne={s.widoczne}>
+          <ul>
+            {s.pozycje.map((p) => (
+              <li set:html={inline(p)} />
+            ))}
+          </ul>
+        </Lista>
+      );
+    if (s.typ === 'wideo') return <Wideo youtube={youtubeId(s.youtube)} tytul={s.tytul} />;
+    if (s.typ === 'galeria') return <Galeria />;
+  })
+}

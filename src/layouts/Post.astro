@@ -7,6 +7,7 @@ import ArrowButton from '../components/ArrowButton.astro';
 import Lista from '../components/Lista.astro';
 import Wideo from '../components/Wideo.astro';
 import Galeria from '../components/Galeria.astro';
+import Sekcje from '../components/Sekcje.astro';
 import Arrow from '../components/Arrow.astro';
 import { sections, formatDate, type PostCollection } from '../lib/content';
 
@@ -19,7 +20,7 @@ const section = sections[entry.collection as PostCollection];
 const { Content } = await render(entry);
 
 Astro.locals.galeria = data.galeria;
-const galleryInBody = /<Galeria\b/.test(entry.body ?? '');
+const galleryPlaced = /<Galeria\b/.test(entry.body ?? '') || data.sekcje.some((s) => s.typ === 'galeria');
 const notka = data.notka ?? data.zrodlo;
 const back = { href: section.href, label: section.label };
 ---
@@ -53,7 +54,8 @@ const back = { href: section.href, label: section.label };
     <hr class="divider post__divider" />
     <div class="post__body prose">
       <Content components={{ Lista, Wideo, Galeria }} />
-      {!galleryInBody && data.galeria.length > 0 && <Galeria zdjecia={data.galeria} />}
+      <Sekcje sekcje={data.sekcje} />
+      {!galleryPlaced && data.galeria.length > 0 && <Galeria zdjecia={data.galeria} />}
     </div>
     {
       data.pliki.length > 0 && (

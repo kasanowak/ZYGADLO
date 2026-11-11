@@ -4,6 +4,29 @@ import { z } from 'astro/zod';
 import type { SchemaContext } from 'astro:content';
 
 /** Pola wspólne dla wpisów: obozy, wystawy, wywiady, publikacje, nowości. */
+/**
+ * Bloki treści pokazywane pod głównym tekstem, w podanej kolejności.
+ * Edytowalne w panelu CMS (pole „Dodatkowe sekcje”).
+ */
+const sekcje = z
+  .array(
+    z.discriminatedUnion('typ', [
+      z.object({ typ: z.literal('tekst'), tresc: z.string().default('') }),
+      z.object({
+        typ: z.literal('lista'),
+        tytul: z.string().optional(),
+        /** Ile pozycji widać przed rozwinięciem (0 = wszystkie). */
+        widoczne: z.number().int().min(0).default(0),
+        pozycje: z.array(z.string()).default([]),
+      }),
+      /** Identyfikator filmu albo pełny link do YouTube. */
+      z.object({ typ: z.literal('wideo'), youtube: z.string().default(''), tytul: z.string().optional() }),
+      /** Miejsce, w którym pojawi się galeria zdjęć wpisu. */
+      z.object({ typ: z.literal('galeria') }),
+    ]),
+  )
+  .default([]);
+
 const postFields = ({ image }: SchemaContext) => ({
   /** Główny nagłówek wpisu (pokazywany też na liście „Nowości”). */
   title: z.string(),
@@ -25,6 +48,7 @@ const postFields = ({ image }: SchemaContext) => ({
   galeria: z.array(z.object({ src: image(), alt: z.string().default('') })).default([]),
   /** Pliki do pobrania – ścieżki względem katalogu /public. */
   pliki: z.array(z.object({ nazwa: z.string(), url: z.string() })).default([]),
+  sekcje,
   /** true = wpis ukryty (nie trafia na stronę). */
   szkic: z.boolean().default(false),
   /** false = nie pokazuj w „Nowościach”. */
@@ -61,8 +85,25 @@ const obrazy = defineCollection({
     }),
 });
 
+/** Pojedyncze strony z edytowalną treścią (na razie: bio). */
+const strony = defineCollection({
+  loader: loader('strony'),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      /** Opis strony dla wyszukiwarek. */
+      opis: z.string().optional(),
+      /** Większy tekst wprowadzający. */
+      wstep: z.string().optional(),
+      zdjecie: image().optional(),
+      zdjecieAlt: z.string().default(''),
+      sekcje,
+    }),
+});
+
 export const collections = {
   obrazy,
+  strony,
   obozy: defineCollection({ loader: loader('obozy'), schema: (ctx) => z.object(postFields(ctx)) }),
   wystawy: defineCollection({ loader: loader('wystawy'), schema: (ctx) => z.object(postFields(ctx)) }),
   nowosci: defineCollection({ loader: loader('nowosci'), schema: (ctx) => z.object(postFields(ctx)) }),

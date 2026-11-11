@@ -28,10 +28,42 @@ Przed wdrożeniem ustaw domenę w `astro.config.mjs` (`site`) i link do Facebook
 | `/wywiady`, `/wywiady/<wpis>` | wywiady |
 | `/nowosci`, `/nowosci/<wpis>` | wspólny strumień wpisów ze wszystkich działów + własne aktualności |
 
-## Dodawanie treści
+## Panel treści (CMS)
+
+Treści najwygodniej edytować w panelu: **https://kasanowak.github.io/ZYGADLO/**
+(Sveltia CMS, interfejs po polsku). Panel zapisuje zmiany jako commity na `master`,
+a pipeline „Build i wdrożenie” w ciągu ok. 1–2 minut buduje i publikuje stronę.
+
+W panelu: Galeria, Nowości, Obozy badawcze, Wystawy, Publikacje, Wywiady, Bio
+oraz Kontakt i ustawienia (e-mail, telefon, Facebook).
+
+### Uruchomienie panelu (jednorazowo, właściciel repo)
+
+1. **Settings → Pages → Build and deployment → Source: GitHub Actions.**
+   Workflow `.github/workflows/cms.yml` opublikuje katalog `cms/` pod adresem powyżej.
+2. Osoba edytująca potrzebuje konta GitHub z dostępem do repo
+   (**Settings → Collaborators → Add people**, rola *Write*).
+3. Logowanie w panelu: **„Zaloguj się za pomocą tokenu dostępu”**. Token tworzy się w GitHub:
+   *Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate*,
+   repozytorium `kasanowak/ZYGADLO`, uprawnienie **Contents: Read and write**.
+   Token zapamiętuje przeglądarka – wpisuje się go raz.
+
+Logowanie przyciskiem „Zaloguj się przez GitHub” wymaga dodatkowo serwera OAuth
+(np. darmowy Cloudflare Worker [sveltia-cms-auth](https://github.com/sveltia/sveltia-cms-auth))
+i wpisania jego adresu jako `backend.base_url` w `cms/config.js`.
+
+### Jak to działa
+
+- Konfiguracja pól: `cms/config.js` – musi zgadzać się ze schematami w `src/content.config.ts`.
+- Zdjęcia z panelu trafiają do `src/assets/obrazy` (Galeria) i `src/assets/zdjecia` (pozostałe),
+  pliki do pobrania do `public/pliki`.
+- Jeśli wpis ma błąd (np. brak wymaganego pola), build się nie uda i strona zostaje w poprzedniej
+  wersji – szczegóły w zakładce **Actions**.
+
+## Dodawanie treści ręcznie
 
 Każdy wpis to plik w `src/content/<dział>/`. Nazwa pliku staje się adresem strony
-(np. `src/content/wystawy/zapis-2016.mdx` → `/wystawy/zapis-2016`).
+(np. `src/content/wystawy/zapis-2016.md` → `/wystawy/zapis-2016`).
 
 Zdjęcia wrzucaj do `src/assets/` i podawaj ścieżką względną. Astro samo zmniejsza je i konwertuje do WebP.
 Pliki do pobrania (PDF itp.) wrzucaj do `public/pliki/`.
@@ -56,7 +88,7 @@ dataNowosci: 2019-06-11       # opcjonalnie: pokaż w „Nowościach”
 Opis obrazu (opcjonalny).
 ```
 
-### Wpis: obóz, wystawa, wywiad, publikacja, aktualność (`*.mdx`)
+### Wpis: obóz, wystawa, wywiad, publikacja, aktualność (`*.md`)
 
 ```yaml
 ---
@@ -82,18 +114,26 @@ zrodlo: "„Barbizon Wiśniowski”, nr 6/2012"
 ---
 ```
 
-W treści MDX możesz używać:
+Pod treścią można dodać bloki `sekcje` (w panelu: „Dodatkowe sekcje”):
 
-```mdx
-<Lista tytul="Wybrane wystawy" widoczne={5}>
-- pozycja 1
-- pozycja 2
-</Lista>
-
-<Wideo youtube="IDENTYFIKATOR_FILMU" tytul="Relacja z obozu" />
-
-<Galeria />   {/* miejsce galerii; bez tego galeria trafia na koniec wpisu */}
+```yaml
+sekcje:
+  - typ: tekst
+    tresc: "Akapit w **Markdown**."
+  - typ: lista                # lista rozwijana strzałką
+    tytul: "Wybrane wystawy"
+    widoczne: 5               # 0 = wszystkie
+    pozycje:
+      - "IX-X 2012 – wystawa *„Bez widoku”*, Kraków"
+  - typ: wideo
+    youtube: "https://www.youtube.com/watch?v=…"   # link albo sam identyfikator
+  - typ: galeria              # miejsce galerii; bez tego galeria trafia na koniec wpisu
 ```
+
+Pliki `.mdx` też działają (komponenty `<Lista>`, `<Wideo>`, `<Galeria />`), ale panel CMS
+obsługuje tylko `.md`.
+
+Bio: `src/content/strony/bio.md`. Dane kontaktowe: `src/data/ustawienia.json`.
 
 ## Do uzupełnienia
 
@@ -101,8 +141,8 @@ Część treści to wypełniacze z makiety. Sprawdź je i podmień:
 
 - tytuły obrazów „Bez tytułu (…)”, ich lata i technika – w projekcie znane były tylko „Rodzina B nr 1” i „Chram św. Paraskewii”;
 - teksty wpisów („… do uzupełnienia”), kategorie publikacji, źródło wywiadu;
-- przykładowa aktualność `src/content/nowosci/nowa-strona.mdx`;
-- link do Facebooka i adres „Design by NUO” w `src/data/site.ts`;
+- przykładowa aktualność `src/content/nowosci/nowa-strona.md`;
+- link do Facebooka (panel → Kontakt i ustawienia) i adres „Design by NUO” w `src/data/site.ts`;
 - `public/pliki/przyklad.pdf` (atrapa pliku do pobrania).
 
 ## Wdrożenie (GitHub Actions)

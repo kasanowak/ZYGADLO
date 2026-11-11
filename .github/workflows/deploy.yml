@@ -15,6 +15,8 @@ name: Build i wdrożenie
 on:
   push:
     branches: [master]
+    # zmiany samego panelu CMS nie wymagają przebudowy strony
+    paths-ignore: ['cms/**', '.github/workflows/cms.yml']
   pull_request:
     branches: [master]
   workflow_dispatch:

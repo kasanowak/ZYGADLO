@@ -20,8 +20,8 @@ const Heading = asPage ? 'h1' : 'h2';
   <Heading class="kontakt__title display" id="kontakt-title">Kontakt</Heading>
   <div class="kontakt__grid">
     <div class="kontakt__left">
-      <p class="kontakt__intro">Zapraszam do kontaktu.</p>
-      <a class="kontakt__fb" href={site.facebook} target="_blank" rel="noopener">Facebook</a>
+      <p class="kontakt__intro">{site.invite}</p>
+      {site.facebook && <a class="kontakt__fb" href={site.facebook} target="_blank" rel="noopener">Facebook</a>}
     </div>
     <address class="kontakt__right">
       <a href={`mailto:${site.email}`} class="kontakt__mail">{site.email}</a>
